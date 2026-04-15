@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bike Climb Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="page-shell">
+        <header class="hero">
+            <div class="hero-copy">
+                <p class="eyebrow">Climbing analysis for real riders</p>
+                <h1>Find the gear that still works when the road tilts up.</h1>
+                <p class="hero-text">
+                    Compare drivetrain choices against cadence, rider and bike mass, and the grade of a hill.
+                    The calculator estimates gear ratio, rollout, road speed, climbing force, and required power.
+                </p>
+            </div>
+            <div class="hero-card">
+                <p class="hero-card-label">What it checks</p>
+                <ul>
+                    <li>Gear ratio and gear inches</li>
+                    <li>Speed at your target cadence</li>
+                    <li>Gravity, rolling, and aero resistance</li>
+                    <li>Whether the setup looks realistic for the climb</li>
+                </ul>
+            </div>
+        </header>
+
+        <main class="layout">
+            <section class="panel controls-panel">
+                <div class="panel-heading panel-heading-inline">
+                    <div>
+                        <p class="section-kicker">Inputs</p>
+                        <h2>Bike, rider, and hill</h2>
+                    </div>
+                    <div class="unit-toggle" role="group" aria-label="Unit system selector">
+                        <button type="button" class="unit-button is-active" data-unit="metric">Metric</button>
+                        <button type="button" class="unit-button" data-unit="imperial">Imperial</button>
+                    </div>
+                </div>
+
+                <form id="calculator-form" class="calculator-form">
+                    <div class="field-grid">
+                        <label class="field">
+                            <span>Front chainring</span>
+                            <div class="input-row">
+                                <input id="chainring" name="chainring" type="number" min="20" max="70" value="34" step="1">
+                                <span>teeth</span>
+                            </div>
+                        </label>
+
+                        <label class="field">
+                            <span>Rear cog</span>
+                            <div class="input-row">
+                                <input id="cog" name="cog" type="number" min="9" max="60" value="34" step="1">
+                                <span>teeth</span>
+                            </div>
+                        </label>
+
+                        <label class="field">
+                            <span>Wheel diameter</span>
+                            <div class="input-row">
+                                <input id="wheelDiameter" name="wheelDiameter" type="number" min="20" max="32" value="27.5" step="0.1">
+                                <span id="wheelDiameterUnit">in</span>
+                            </div>
+                        </label>
+
+                        <label class="field">
+                            <span>Cadence</span>
+                            <div class="input-row">
+                                <input id="cadence" name="cadence" type="number" min="20" max="140" value="82" step="1">
+                                <span>rpm</span>
+                            </div>
+                        </label>
+
+                        <label class="field">
+                            <span>Rider weight</span>
+                            <div class="input-row">
+                                <input id="riderWeight" name="riderWeight" type="number" min="35" max="160" value="76" step="0.5">
+                                <span id="riderWeightUnit">kg</span>
+                            </div>
+                        </label>
+
+                        <label class="field">
+                            <span>Bike weight</span>
+                            <div class="input-row">
+                                <input id="bikeWeight" name="bikeWeight" type="number" min="5" max="35" value="9.5" step="0.1">
+                                <span id="bikeWeightUnit">kg</span>
+                            </div>
+                        </label>
+
+                        <label class="field">
+                            <span>Hill grade</span>
+                            <div class="input-row">
+                                <input id="grade" name="grade" type="number" min="0" max="30" value="8" step="0.1">
+                                <span>%</span>
+                            </div>
+                        </label>
+
+                        <label class="field">
+                            <span>Sustainable power</span>
+                            <div class="input-row">
+                                <input id="powerBudget" name="powerBudget" type="number" min="60" max="500" value="240" step="5">
+                                <span>W</span>
+                            </div>
+                        </label>
+
+                        <label class="field field-wide">
+                            <span>Chainring set</span>
+                            <div class="input-row input-row-text">
+                                <input id="chainringSet" name="chainringSet" type="text" value="34, 50">
+                            </div>
+                        </label>
+
+                        <label class="field field-wide">
+                            <span>Cassette cogs</span>
+                            <div class="input-row input-row-text">
+                                <input id="cassette" name="cassette" type="text" value="11, 13, 15, 17, 19, 21, 24, 28, 34">
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="preset-row">
+                        <span class="preset-label">Presets</span>
+                        <button type="button" class="preset-button" data-preset="endurance">Endurance road</button>
+                        <button type="button" class="preset-button" data-preset="gravel">Loaded gravel</button>
+                        <button type="button" class="preset-button" data-preset="mountain">Steep MTB climb</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="panel results-panel">
+                <div class="panel-heading">
+                    <p class="section-kicker">Analysis</p>
+                    <h2>What this gear delivers</h2>
+                </div>
+
+                <div class="metrics-grid">
+                    <article class="metric-card accent-sand">
+                        <p class="metric-label">Gear ratio</p>
+                        <p class="metric-value" id="gearRatioValue">1.00</p>
+                        <p class="metric-note" id="gearRatioNote">Balanced for moderate grades.</p>
+                    </article>
+
+                    <article class="metric-card accent-sky">
+                        <p class="metric-label">Gear inches</p>
+                        <p class="metric-value" id="gearInchesValue">27.5</p>
+                        <p class="metric-note">Lower numbers help on steep climbs.</p>
+                    </article>
+
+                    <article class="metric-card accent-mint">
+                        <p class="metric-label">Speed at cadence</p>
+                        <p class="metric-value" id="speedValue">0.0 km/h</p>
+                        <p class="metric-note" id="speedMphValue">0.0 mph</p>
+                    </article>
+
+                    <article class="metric-card accent-rose">
+                        <p class="metric-label">Required power</p>
+                        <p class="metric-value" id="powerValue">0 W</p>
+                        <p class="metric-note" id="powerDeltaValue">Within target budget.</p>
+                    </article>
+                </div>
+
+                <div class="analysis-grid">
+                    <article class="analysis-card">
+                        <h3>Climb forces</h3>
+                        <dl class="stat-list">
+                            <div>
+                                <dt>Gravity</dt>
+                                <dd id="gravityForceValue">0 N</dd>
+                            </div>
+                            <div>
+                                <dt>Rolling resistance</dt>
+                                <dd id="rollingForceValue">0 N</dd>
+                            </div>
+                            <div>
+                                <dt>Aero drag</dt>
+                                <dd id="dragForceValue">0 N</dd>
+                            </div>
+                            <div>
+                                <dt>Total resisting force</dt>
+                                <dd id="totalForceValue">0 N</dd>
+                            </div>
+                        </dl>
+                    </article>
+
+                    <article class="analysis-card insight-card">
+                        <h3>Ride readout</h3>
+                        <p id="insightText">
+                            Enter your setup to see whether the chosen gear looks viable for the climb.
+                        </p>
+                    </article>
+                </div>
+
+                <div class="analysis-grid extended-grid">
+                    <article class="analysis-card">
+                        <div class="subsection-heading">
+                            <div>
+                                <p class="section-kicker">Comparison</p>
+                                <h3>Full drivetrain table</h3>
+                            </div>
+                            <p class="table-caption">Sorted from easiest climbing gear to tallest ratio.</p>
+                        </div>
+                        <div class="table-wrap">
+                            <table class="gear-table">
+                                <thead>
+                                    <tr>
+                                        <th>Gear</th>
+                                        <th>Ratio</th>
+                                        <th>Range</th>
+                                        <th>Speed</th>
+                                        <th>Power</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="gearTableBody"></tbody>
+                            </table>
+                        </div>
+                    </article>
+
+                    <article class="analysis-card chart-stack">
+                        <div class="subsection-heading">
+                            <div>
+                                <p class="section-kicker">Charts</p>
+                                <h3>Cadence and grade curves</h3>
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <div>
+                                    <p class="metric-label">Cadence vs speed</p>
+                                    <p class="chart-summary" id="cadenceChartSummary">Shows road speed for the selected gear.</p>
+                                </div>
+                            </div>
+                            <svg id="cadenceChart" class="chart" viewBox="0 0 360 180" aria-label="Cadence versus speed chart"></svg>
+                        </div>
+
+                        <div class="chart-card">
+                            <div class="chart-header">
+                                <div>
+                                    <p class="metric-label">Grade vs power</p>
+                                    <p class="chart-summary" id="gradeChartSummary">Shows required power as the hill steepens.</p>
+                                </div>
+                            </div>
+                            <svg id="gradeChart" class="chart" viewBox="0 0 360 180" aria-label="Grade versus power chart"></svg>
+                        </div>
+                    </article>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
