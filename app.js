@@ -14,6 +14,10 @@ function getRequiredFormControl(name) {
     return field;
 }
 const form = getRequiredElement("calculator-form");
+const calculateChainringButton = getRequiredElement("calculateChainringButton");
+const calculateCassetteButton = getRequiredElement("calculateCassetteButton");
+const chainringField = getRequiredFormControl("chainring");
+const cogField = getRequiredFormControl("cog");
 const resultElements = {
     gearRatioValue: getRequiredElement("gearRatioValue"),
     gearRatioNote: getRequiredElement("gearRatioNote"),
@@ -32,6 +36,10 @@ const resultElements = {
     cadenceChartSummary: getRequiredElement("cadenceChartSummary"),
     gradeChart: getRequiredElement("gradeChart"),
     gradeChartSummary: getRequiredElement("gradeChartSummary"),
+    chainringRecommendationValue: getRequiredElement("chainringRecommendationValue"),
+    chainringRecommendationNote: getRequiredElement("chainringRecommendationNote"),
+    cassetteRecommendationValue: getRequiredElement("cassetteRecommendationValue"),
+    cassetteRecommendationNote: getRequiredElement("cassetteRecommendationNote"),
     riderWeightUnit: getRequiredElement("riderWeightUnit"),
     bikeWeightUnit: getRequiredElement("bikeWeightUnit"),
     wheelDiameterUnit: getRequiredElement("wheelDiameterUnit")
@@ -84,7 +92,7 @@ const constants = {
     millimetersPerInch: 25.4,
     feetPerMeter: 3.28084
 };
-let currentUnitSystem = "metric";
+let currentUnitSystem = "imperial";
 function readNumber(name) {
     return Number(getRequiredFormControl(name).value);
 }
@@ -162,6 +170,124 @@ function computeGearMetrics(input) {
         powerBudget: input.powerBudget,
         grade: input.grade
     };
+}
+function getChainringBounds() {
+    const min = Number(chainringField.min);
+    const max = Number(chainringField.max);
+    return {
+        min: Number.isFinite(min) ? min : 20,
+        max: Number.isFinite(max) ? max : 70
+    };
+}
+function getCogBounds() {
+    const min = Number(cogField.min);
+    const max = Number(cogField.max);
+    return {
+        min: Number.isFinite(min) ? min : 9,
+        max: Number.isFinite(max) ? max : 60
+    };
+}
+function calculateChainringRecommendation(inputs) {
+    const limitingCog = Math.max(...inputs.cassette);
+    const { min, max } = getChainringBounds();
+    let fallbackMetrics = null;
+    for (let chainring = max; chainring >= min; chainring -= 1) {
+        const metrics = computeGearMetrics({
+            chainring,
+            cog: limitingCog,
+            wheelDiameterInches: inputs.wheelDiameterInches,
+            cadence: inputs.cadence,
+            riderWeightKg: inputs.riderWeightKg,
+            bikeWeightKg: inputs.bikeWeightKg,
+            grade: inputs.grade,
+            powerBudget: inputs.powerBudget
+        });
+        fallbackMetrics = metrics;
+        if (metrics.powerWatts <= inputs.powerBudget) {
+            return {
+                recommendedChainring: chainring,
+                limitingCog,
+                metrics
+            };
+        }
+    }
+    return {
+        recommendedChainring: null,
+        limitingCog,
+        metrics: fallbackMetrics
+    };
+}
+function calculateCassetteRecommendation(inputs) {
+    const currentLargestCog = Math.max(...inputs.cassette);
+    const { min, max } = getCogBounds();
+    let fallbackMetrics = null;
+    for (let cog = min; cog <= max; cog += 1) {
+        const metrics = computeGearMetrics({
+            chainring: inputs.chainring,
+            cog,
+            wheelDiameterInches: inputs.wheelDiameterInches,
+            cadence: inputs.cadence,
+            riderWeightKg: inputs.riderWeightKg,
+            bikeWeightKg: inputs.bikeWeightKg,
+            grade: inputs.grade,
+            powerBudget: inputs.powerBudget
+        });
+        fallbackMetrics = metrics;
+        if (metrics.powerWatts <= inputs.powerBudget) {
+            return {
+                recommendedCog: cog,
+                currentLargestCog,
+                metrics
+            };
+        }
+    }
+    return {
+        recommendedCog: null,
+        currentLargestCog,
+        metrics: fallbackMetrics
+    };
+}
+function clearChainringRecommendation() {
+    resultElements.chainringRecommendationValue.textContent = "Press Calculate Chainring to find the largest workable front chainring.";
+    resultElements.chainringRecommendationNote.textContent = "Searches the full front-chainring range and checks the largest cassette cog against your current cadence, grade, weight, wheel size, and power budget.";
+}
+function clearCassetteRecommendation() {
+    resultElements.cassetteRecommendationValue.textContent = "Press Calculate Cassette to find the smallest workable largest cog.";
+    resultElements.cassetteRecommendationNote.textContent = "Uses the current front chainring and searches the full rear-cog range to find the minimum largest cog that stays inside your power budget.";
+}
+function clearRecommendations() {
+    clearChainringRecommendation();
+    clearCassetteRecommendation();
+}
+function renderChainringRecommendation(recommendation) {
+    if (recommendation.recommendedChainring !== null && recommendation.metrics) {
+        resultElements.chainringRecommendationValue.textContent = `Max chainring: ${recommendation.recommendedChainring}T`;
+        resultElements.chainringRecommendationNote.textContent = `${recommendation.recommendedChainring}T x ${recommendation.limitingCog}T needs ${formatNumber(recommendation.metrics.powerWatts, 0)} W at the current cadence, staying within the ${formatNumber(recommendation.metrics.powerBudget, 0)} W budget.`;
+        return;
+    }
+    resultElements.chainringRecommendationValue.textContent = "No listed chainring fits";
+    if (recommendation.metrics) {
+        resultElements.chainringRecommendationNote.textContent = `In the ${recommendation.limitingCog}T cog, even ${recommendation.metrics.chainring}T needs ${formatNumber(recommendation.metrics.powerWatts, 0)} W, which is above the ${formatNumber(recommendation.metrics.powerBudget, 0)} W budget.`;
+        return;
+    }
+    resultElements.chainringRecommendationNote.textContent = `No valid chainrings were available to test against the ${recommendation.limitingCog}T cog.`;
+}
+function renderCassetteRecommendation(recommendation) {
+    if (recommendation.recommendedCog !== null && recommendation.metrics) {
+        resultElements.cassetteRecommendationValue.textContent = `Largest cog needed: ${recommendation.recommendedCog}T`;
+        if (recommendation.currentLargestCog >= recommendation.recommendedCog) {
+            resultElements.cassetteRecommendationNote.textContent = `Your current cassette already reaches ${recommendation.currentLargestCog}T, so ${recommendation.metrics.chainring}T x ${recommendation.recommendedCog}T stays within the ${formatNumber(recommendation.metrics.powerBudget, 0)} W budget at ${formatNumber(recommendation.metrics.powerWatts, 0)} W.`;
+            return;
+        }
+        resultElements.cassetteRecommendationNote.textContent = `For the current ${recommendation.metrics.chainring}T chainring, you need at least a ${recommendation.recommendedCog}T largest cog. That pairing needs ${formatNumber(recommendation.metrics.powerWatts, 0)} W at the current cadence and grade.`;
+        return;
+    }
+    resultElements.cassetteRecommendationValue.textContent = "No rear cog is enough";
+    if (recommendation.metrics) {
+        resultElements.cassetteRecommendationNote.textContent = `Even a ${recommendation.metrics.cog}T largest cog still needs ${formatNumber(recommendation.metrics.powerWatts, 0)} W with the current ${recommendation.metrics.chainring}T chainring, which is above the ${formatNumber(recommendation.metrics.powerBudget, 0)} W budget.`;
+        return;
+    }
+    resultElements.cassetteRecommendationNote.textContent = "No valid rear-cog sizes were available to test.";
 }
 function describeGear(gearInches, grade, powerDelta) {
     if (grade >= 12 && gearInches > 35) {
@@ -435,28 +561,41 @@ function calculate() {
     renderGearTable(metricInputs);
     renderCharts(metricInputs);
 }
-form.addEventListener("input", calculate);
+form.addEventListener("input", () => {
+    clearRecommendations();
+    calculate();
+});
 unitButtons.forEach((button) => {
     button.addEventListener("click", () => {
         const nextUnit = button.dataset.unit;
         if (nextUnit === "metric" || nextUnit === "imperial") {
             convertDisplayedInputs(nextUnit);
+            clearRecommendations();
             calculate();
         }
     });
 });
-document.querySelectorAll(".preset-button").forEach((button) => {
+document.querySelectorAll("[data-preset]").forEach((button) => {
     button.addEventListener("click", () => {
         const presetKey = button.dataset.preset;
         if (presetKey && presetKey in presets) {
             applyPreset(presets[presetKey]);
+            clearRecommendations();
             calculate();
         }
     });
 });
+calculateChainringButton.addEventListener("click", () => {
+    renderChainringRecommendation(calculateChainringRecommendation(getMetricInputs()));
+});
+calculateCassetteButton.addEventListener("click", () => {
+    renderCassetteRecommendation(calculateCassetteRecommendation(getMetricInputs()));
+});
 writeValue("chainringSet", presets.endurance.chainringSet);
 writeValue("cassette", presets.endurance.cassette);
-writeValue("wheelDiameter", formatNumber(readNumber("wheelDiameter") * constants.millimetersPerInch, 0));
+writeValue("riderWeight", formatNumber(readNumber("riderWeight") * constants.poundsPerKilogram, 1));
+writeValue("bikeWeight", formatNumber(readNumber("bikeWeight") * constants.poundsPerKilogram, 1));
 updateUnitLabels();
 setUnitButtonState();
+clearRecommendations();
 calculate();

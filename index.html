@@ -39,8 +39,8 @@
                         <h2>Bike, rider, and hill</h2>
                     </div>
                     <div class="unit-toggle" role="group" aria-label="Unit system selector">
-                        <button type="button" class="unit-button is-active" data-unit="metric">Metric</button>
-                        <button type="button" class="unit-button" data-unit="imperial">Imperial</button>
+                        <button type="button" class="unit-button" data-unit="metric">Metric</button>
+                        <button type="button" class="unit-button is-active" data-unit="imperial">Imperial</button>
                     </div>
                 </div>
 
@@ -130,6 +130,26 @@
                         <button type="button" class="preset-button" data-preset="endurance">Endurance road</button>
                         <button type="button" class="preset-button" data-preset="gravel">Loaded gravel</button>
                         <button type="button" class="preset-button" data-preset="mountain">Steep MTB climb</button>
+                    </div>
+
+                    <div class="action-grid">
+                        <div class="action-row">
+                            <button type="button" class="preset-button action-button" id="calculateChainringButton">Calculate Chainring</button>
+                            <div class="recommendation-card" aria-live="polite">
+                                <p class="recommendation-label">Max chainring recommendation</p>
+                                <p class="recommendation-value" id="chainringRecommendationValue">Press Calculate Chainring to find the largest workable front chainring.</p>
+                                <p class="recommendation-note" id="chainringRecommendationNote">Searches the full front-chainring range and checks the largest cassette cog against your current cadence, grade, weight, wheel size, and power budget.</p>
+                            </div>
+                        </div>
+
+                        <div class="action-row">
+                            <button type="button" class="preset-button action-button" id="calculateCassetteButton">Calculate Cassette</button>
+                            <div class="recommendation-card" aria-live="polite">
+                                <p class="recommendation-label">Largest cog recommendation</p>
+                                <p class="recommendation-value" id="cassetteRecommendationValue">Press Calculate Cassette to find the smallest workable largest cog.</p>
+                                <p class="recommendation-note" id="cassetteRecommendationNote">Uses the current front chainring and searches the full rear-cog range to find the minimum largest cog that stays inside your power budget.</p>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </section>

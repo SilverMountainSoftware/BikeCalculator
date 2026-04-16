@@ -262,6 +262,17 @@ input {
     margin-top: 0.5rem;
 }
 
+.action-grid {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.action-row {
+    display: grid;
+    gap: 0.9rem;
+}
+
 .preset-button {
     border: 0;
     border-radius: 999px;
@@ -278,6 +289,44 @@ input {
 .preset-button:focus-visible {
     transform: translateY(-1px);
     background: rgba(24, 34, 30, 0.14);
+}
+
+.action-button {
+    justify-self: start;
+}
+
+.recommendation-card {
+    display: grid;
+    gap: 0.45rem;
+    padding: 1rem 1.05rem;
+    border-radius: 1.1rem;
+    background: rgba(255, 255, 255, 0.62);
+    border: 1px solid var(--line);
+}
+
+.recommendation-label,
+.recommendation-value,
+.recommendation-note {
+    margin: 0;
+}
+
+.recommendation-label {
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.recommendation-value {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text-main);
+}
+
+.recommendation-note {
+    color: var(--text-muted);
+    line-height: 1.5;
 }
 
 .results-panel {
