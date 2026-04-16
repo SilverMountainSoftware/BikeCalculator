@@ -51,10 +51,10 @@ const presets = {
         cog: 34,
         wheelDiameter: 27.8,
         cadence: 85,
-        riderWeight: 72,
+        riderWeight: 90.7,
         bikeWeight: 8.4,
-        grade: 7,
-        powerBudget: 235,
+        grade: 5,
+        powerBudget: 200,
         chainringSet: "34, 50",
         cassette: "11, 13, 15, 17, 19, 21, 24, 28, 34"
     },
@@ -591,11 +591,8 @@ calculateChainringButton.addEventListener("click", () => {
 calculateCassetteButton.addEventListener("click", () => {
     renderCassetteRecommendation(calculateCassetteRecommendation(getMetricInputs()));
 });
-writeValue("chainringSet", presets.endurance.chainringSet);
-writeValue("cassette", presets.endurance.cassette);
-writeValue("riderWeight", formatNumber(readNumber("riderWeight") * constants.poundsPerKilogram, 1));
-writeValue("bikeWeight", formatNumber(readNumber("bikeWeight") * constants.poundsPerKilogram, 1));
 updateUnitLabels();
 setUnitButtonState();
+applyPreset(presets.endurance);
 clearRecommendations();
 calculate();
