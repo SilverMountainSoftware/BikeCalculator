@@ -1,149 +1,24 @@
 import { APP_VERSION } from "./version.js";
-
-type UnitSystem = "metric" | "imperial";
-
-type PresetKey = "endurance" | "gravel" | "mountain";
-
-interface ResultElements {
-    appVersion: HTMLElement;
-    gearRatioValue: HTMLElement;
-    gearRatioNote: HTMLElement;
-    gearInchesValue: HTMLElement;
-    speedValue: HTMLElement;
-    speedMphValue: HTMLElement;
-    powerValue: HTMLElement;
-    powerDeltaValue: HTMLElement;
-    gravityForceValue: HTMLElement;
-    rollingForceValue: HTMLElement;
-    dragForceValue: HTMLElement;
-    totalForceValue: HTMLElement;
-    insightText: HTMLElement;
-    gearTableBody: HTMLElement;
-    cadenceChart: SVGSVGElement;
-    cadenceChartSummary: HTMLElement;
-    gradeChart: SVGSVGElement;
-    gradeChartSummary: HTMLElement;
-    chainringRecommendationValue: HTMLElement;
-    chainringRecommendationNote: HTMLElement;
-    cassetteRecommendationValue: HTMLElement;
-    cassetteRecommendationNote: HTMLElement;
-    riderWeightUnit: HTMLElement;
-    bikeWeightUnit: HTMLElement;
-    wheelDiameterUnit: HTMLElement;
-}
-
-interface PresetValues {
-    chainring: number;
-    cog: number;
-    wheelDiameter: number;
-    cadence: number;
-    riderWeight: number;
-    bikeWeight: number;
-    grade: number;
-    powerBudget: number;
-    chainringSet: string;
-    cassette: string;
-}
-
-interface MetricInputs {
-    chainring: number;
-    cog: number;
-    wheelDiameterInches: number;
-    cadence: number;
-    riderWeightKg: number;
-    bikeWeightKg: number;
-    grade: number;
-    powerBudget: number;
-    chainringSet: number[];
-    cassette: number[];
-}
-
-interface GearMetrics {
-    chainring: number;
-    cog: number;
-    totalMass: number;
-    gearRatio: number;
-    gearInches: number;
-    rolloutMeters: number;
-    speedMetersPerSecond: number;
-    speedKph: number;
-    speedMph: number;
-    gravityForce: number;
-    rollingForce: number;
-    dragForce: number;
-    totalForce: number;
-    powerWatts: number;
-    powerDelta: number;
-    powerBudget: number;
-    grade: number;
-}
-
-interface ChainringRecommendation {
-    recommendedChainring: number | null;
-    limitingCog: number;
-    metrics: GearMetrics | null;
-}
-
-interface CassetteRecommendation {
-    recommendedCog: number | null;
-    currentLargestCog: number;
-    metrics: GearMetrics | null;
-}
-
-interface StatusPill {
-    label: string;
-    tone: string;
-}
-
-interface ChartPoint {
-    x: number;
-    y: number;
-    label: string;
-}
-
-interface PlottedChartPoint extends ChartPoint {
-    plotX: number;
-    plotY: number;
-}
-
-interface ChartData {
-    yMax: number;
-    points: PlottedChartPoint[];
-}
-
-interface ChartOptions {
-    lineClass: string;
-    pointClass: string;
-    yLabel: string;
-}
-
-function getRequiredElement<T extends Element>(id: string): T {
+function getRequiredElement(id) {
     const element = document.getElementById(id);
-
     if (!element) {
         throw new Error(`Missing required element: ${id}`);
     }
-
-    return element as unknown as T;
+    return element;
 }
-
-function getRequiredFormControl(name: string): HTMLInputElement {
+function getRequiredFormControl(name) {
     const field = form.elements.namedItem(name);
-
     if (!(field instanceof HTMLInputElement)) {
         throw new Error(`Missing required form control: ${name}`);
     }
-
     return field;
 }
-
-const form = getRequiredElement<HTMLFormElement>("calculator-form");
-const calculateChainringButton = getRequiredElement<HTMLButtonElement>("calculateChainringButton");
-const calculateCassetteButton = getRequiredElement<HTMLButtonElement>("calculateCassetteButton");
+const form = getRequiredElement("calculator-form");
+const calculateChainringButton = getRequiredElement("calculateChainringButton");
+const calculateCassetteButton = getRequiredElement("calculateCassetteButton");
 const chainringField = getRequiredFormControl("chainring");
 const cogField = getRequiredFormControl("cog");
-
-const resultElements: ResultElements = {
+const resultElements = {
     appVersion: getRequiredElement("appVersion"),
     gearRatioValue: getRequiredElement("gearRatioValue"),
     gearRatioNote: getRequiredElement("gearRatioNote"),
@@ -158,9 +33,9 @@ const resultElements: ResultElements = {
     totalForceValue: getRequiredElement("totalForceValue"),
     insightText: getRequiredElement("insightText"),
     gearTableBody: getRequiredElement("gearTableBody"),
-    cadenceChart: getRequiredElement<SVGSVGElement>("cadenceChart"),
+    cadenceChart: getRequiredElement("cadenceChart"),
     cadenceChartSummary: getRequiredElement("cadenceChartSummary"),
-    gradeChart: getRequiredElement<SVGSVGElement>("gradeChart"),
+    gradeChart: getRequiredElement("gradeChart"),
     gradeChartSummary: getRequiredElement("gradeChartSummary"),
     chainringRecommendationValue: getRequiredElement("chainringRecommendationValue"),
     chainringRecommendationNote: getRequiredElement("chainringRecommendationNote"),
@@ -170,10 +45,8 @@ const resultElements: ResultElements = {
     bikeWeightUnit: getRequiredElement("bikeWeightUnit"),
     wheelDiameterUnit: getRequiredElement("wheelDiameterUnit")
 };
-
-const unitButtons = Array.from(document.querySelectorAll<HTMLButtonElement>(".unit-button"));
-
-const presets: Record<PresetKey, PresetValues> = {
+const unitButtons = Array.from(document.querySelectorAll(".unit-button"));
+const presets = {
     endurance: {
         chainring: 34,
         cog: 34,
@@ -211,7 +84,6 @@ const presets: Record<PresetKey, PresetValues> = {
         cassette: "10, 12, 14, 16, 18, 21, 24, 28, 32, 38, 45, 52"
     }
 };
-
 const constants = {
     gravity: 9.80665,
     rollingCoefficient: 0.005,
@@ -220,40 +92,31 @@ const constants = {
     poundsPerKilogram: 2.2046226218,
     millimetersPerInch: 25.4,
     feetPerMeter: 3.28084
-} as const;
-
-let currentUnitSystem: UnitSystem = "imperial";
-
-function readNumber(name: string): number {
+};
+let currentUnitSystem = "imperial";
+function readNumber(name) {
     return Number(getRequiredFormControl(name).value);
 }
-
-function writeValue(name: string, value: string): void {
+function writeValue(name, value) {
     getRequiredFormControl(name).value = value;
 }
-
-function formatNumber(value: number, digits = 1): string {
+function formatNumber(value, digits = 1) {
     return value.toFixed(digits);
 }
-
-function parseToothList(value: string, fallback: number): number[] {
+function parseToothList(value, fallback) {
     const parsed = value
         .split(",")
         .map((part) => Number(part.trim()))
         .filter((item) => Number.isFinite(item) && item > 0);
-
     if (parsed.length === 0) {
         return [fallback];
     }
-
     return Array.from(new Set(parsed)).sort((left, right) => left - right);
 }
-
-function getMetricInputs(): MetricInputs {
+function getMetricInputs() {
     const wheelDiameterInput = readNumber("wheelDiameter");
     const riderWeightInput = readNumber("riderWeight");
     const bikeWeightInput = readNumber("bikeWeight");
-
     return {
         chainring: readNumber("chainring"),
         cog: readNumber("cog"),
@@ -273,8 +136,7 @@ function getMetricInputs(): MetricInputs {
         cassette: parseToothList(getRequiredFormControl("cassette").value, readNumber("cog"))
     };
 }
-
-function computeGearMetrics(input: Omit<MetricInputs, "chainringSet" | "cassette">): GearMetrics {
+function computeGearMetrics(input) {
     const totalMass = input.riderWeightKg + input.bikeWeightKg;
     const gearRatio = input.chainring / input.cog;
     const gearInches = gearRatio * input.wheelDiameterInches;
@@ -290,7 +152,6 @@ function computeGearMetrics(input: Omit<MetricInputs, "chainringSet" | "cassette
     const dragForce = 0.5 * constants.airDensity * constants.dragArea * speedMetersPerSecond * speedMetersPerSecond;
     const totalForce = gravityForce + rollingForce + dragForce;
     const powerWatts = totalForce * speedMetersPerSecond;
-
     return {
         chainring: input.chainring,
         cog: input.cog,
@@ -311,32 +172,26 @@ function computeGearMetrics(input: Omit<MetricInputs, "chainringSet" | "cassette
         grade: input.grade
     };
 }
-
-function getChainringBounds(): { min: number; max: number } {
+function getChainringBounds() {
     const min = Number(chainringField.min);
     const max = Number(chainringField.max);
-
     return {
         min: Number.isFinite(min) ? min : 20,
         max: Number.isFinite(max) ? max : 70
     };
 }
-
-function getCogBounds(): { min: number; max: number } {
+function getCogBounds() {
     const min = Number(cogField.min);
     const max = Number(cogField.max);
-
     return {
         min: Number.isFinite(min) ? min : 9,
         max: Number.isFinite(max) ? max : 60
     };
 }
-
-function calculateChainringRecommendation(inputs: MetricInputs): ChainringRecommendation {
+function calculateChainringRecommendation(inputs) {
     const limitingCog = Math.max(...inputs.cassette);
     const { min, max } = getChainringBounds();
-    let fallbackMetrics: GearMetrics | null = null;
-
+    let fallbackMetrics = null;
     for (let chainring = max; chainring >= min; chainring -= 1) {
         const metrics = computeGearMetrics({
             chainring,
@@ -348,9 +203,7 @@ function calculateChainringRecommendation(inputs: MetricInputs): ChainringRecomm
             grade: inputs.grade,
             powerBudget: inputs.powerBudget
         });
-
         fallbackMetrics = metrics;
-
         if (metrics.powerWatts <= inputs.powerBudget) {
             return {
                 recommendedChainring: chainring,
@@ -359,19 +212,16 @@ function calculateChainringRecommendation(inputs: MetricInputs): ChainringRecomm
             };
         }
     }
-
     return {
         recommendedChainring: null,
         limitingCog,
         metrics: fallbackMetrics
     };
 }
-
-function calculateCassetteRecommendation(inputs: MetricInputs): CassetteRecommendation {
+function calculateCassetteRecommendation(inputs) {
     const currentLargestCog = Math.max(...inputs.cassette);
     const { min, max } = getCogBounds();
-    let fallbackMetrics: GearMetrics | null = null;
-
+    let fallbackMetrics = null;
     for (let cog = min; cog <= max; cog += 1) {
         const metrics = computeGearMetrics({
             chainring: inputs.chainring,
@@ -383,9 +233,7 @@ function calculateCassetteRecommendation(inputs: MetricInputs): CassetteRecommen
             grade: inputs.grade,
             powerBudget: inputs.powerBudget
         });
-
         fallbackMetrics = metrics;
-
         if (metrics.powerWatts <= inputs.powerBudget) {
             return {
                 recommendedCog: cog,
@@ -394,90 +242,70 @@ function calculateCassetteRecommendation(inputs: MetricInputs): CassetteRecommen
             };
         }
     }
-
     return {
         recommendedCog: null,
         currentLargestCog,
         metrics: fallbackMetrics
     };
 }
-
-function clearChainringRecommendation(): void {
+function clearChainringRecommendation() {
     resultElements.chainringRecommendationValue.textContent = "Press Calculate Chainring to find the largest workable front chainring.";
     resultElements.chainringRecommendationNote.textContent = "Searches the full front-chainring range and checks the largest cassette cog against your current cadence, grade, weight, wheel size, and power budget.";
 }
-
-function clearCassetteRecommendation(): void {
+function clearCassetteRecommendation() {
     resultElements.cassetteRecommendationValue.textContent = "Press Calculate Cassette to find the smallest workable largest cog.";
     resultElements.cassetteRecommendationNote.textContent = "Uses the current front chainring and searches the full rear-cog range to find the minimum largest cog that stays inside your power budget.";
 }
-
-function clearRecommendations(): void {
+function clearRecommendations() {
     clearChainringRecommendation();
     clearCassetteRecommendation();
 }
-
-function renderChainringRecommendation(recommendation: ChainringRecommendation): void {
+function renderChainringRecommendation(recommendation) {
     if (recommendation.recommendedChainring !== null && recommendation.metrics) {
         resultElements.chainringRecommendationValue.textContent = `Max chainring: ${recommendation.recommendedChainring}T`;
         resultElements.chainringRecommendationNote.textContent = `${recommendation.recommendedChainring}T x ${recommendation.limitingCog}T needs ${formatNumber(recommendation.metrics.powerWatts, 0)} W at the current cadence, staying within the ${formatNumber(recommendation.metrics.powerBudget, 0)} W budget.`;
         return;
     }
-
     resultElements.chainringRecommendationValue.textContent = "No listed chainring fits";
-
     if (recommendation.metrics) {
         resultElements.chainringRecommendationNote.textContent = `In the ${recommendation.limitingCog}T cog, even ${recommendation.metrics.chainring}T needs ${formatNumber(recommendation.metrics.powerWatts, 0)} W, which is above the ${formatNumber(recommendation.metrics.powerBudget, 0)} W budget.`;
         return;
     }
-
     resultElements.chainringRecommendationNote.textContent = `No valid chainrings were available to test against the ${recommendation.limitingCog}T cog.`;
 }
-
-function renderCassetteRecommendation(recommendation: CassetteRecommendation): void {
+function renderCassetteRecommendation(recommendation) {
     if (recommendation.recommendedCog !== null && recommendation.metrics) {
         resultElements.cassetteRecommendationValue.textContent = `Largest cog needed: ${recommendation.recommendedCog}T`;
-
         if (recommendation.currentLargestCog >= recommendation.recommendedCog) {
             resultElements.cassetteRecommendationNote.textContent = `Your current cassette already reaches ${recommendation.currentLargestCog}T, so ${recommendation.metrics.chainring}T x ${recommendation.recommendedCog}T stays within the ${formatNumber(recommendation.metrics.powerBudget, 0)} W budget at ${formatNumber(recommendation.metrics.powerWatts, 0)} W.`;
             return;
         }
-
         resultElements.cassetteRecommendationNote.textContent = `For the current ${recommendation.metrics.chainring}T chainring, you need at least a ${recommendation.recommendedCog}T largest cog. That pairing needs ${formatNumber(recommendation.metrics.powerWatts, 0)} W at the current cadence and grade.`;
         return;
     }
-
     resultElements.cassetteRecommendationValue.textContent = "No rear cog is enough";
-
     if (recommendation.metrics) {
         resultElements.cassetteRecommendationNote.textContent = `Even a ${recommendation.metrics.cog}T largest cog still needs ${formatNumber(recommendation.metrics.powerWatts, 0)} W with the current ${recommendation.metrics.chainring}T chainring, which is above the ${formatNumber(recommendation.metrics.powerBudget, 0)} W budget.`;
         return;
     }
-
     resultElements.cassetteRecommendationNote.textContent = "No valid rear-cog sizes were available to test.";
 }
-
-function describeGear(gearInches: number, grade: number, powerDelta: number): string {
+function describeGear(gearInches, grade, powerDelta) {
     if (grade >= 12 && gearInches > 35) {
         return "Tall for a steep climb. Expect grinding unless you can hold high power.";
     }
-
     if (grade >= 8 && gearInches < 25) {
         return "Very climb-friendly gearing. You should be able to stay seated and spin.";
     }
-
     if (powerDelta > 35) {
         return "This setup asks for more power than the target budget. Consider an easier cog or slower cadence.";
     }
-
     if (powerDelta < -40 && gearInches < 32) {
         return "Comfortably inside the power budget. You may have room for a slightly taller gear.";
     }
-
     return "Balanced gearing for sustained climbing at a steady cadence.";
 }
-
-function buildInsight(metrics: GearMetrics): string {
+function buildInsight(metrics) {
     const massValue = currentUnitSystem === "metric"
         ? `${formatNumber(metrics.totalMass, 1)} kg system mass`
         : `${formatNumber(metrics.totalMass * constants.poundsPerKilogram, 1)} lb system mass`;
@@ -485,49 +313,38 @@ function buildInsight(metrics: GearMetrics): string {
         ? `${formatNumber(metrics.speedKph, 1)} km/h`
         : `${formatNumber(metrics.speedMph, 1)} mph`;
     const ratioText = `${formatNumber(metrics.gearRatio, 2)}:1`;
-
     if (metrics.powerDelta > 40) {
         return `At ${metrics.grade}% grade, ${ratioText} gearing pushes ${massValue} uphill at about ${speedText}, but the estimated ${formatNumber(metrics.powerWatts, 0)} W demand is well above the target budget.`;
     }
-
     if (metrics.gearInches <= 24 && metrics.grade >= 10) {
         return `This is a low climbing gear. For ${massValue} on a ${metrics.grade}% slope, it trades speed for cadence and keeps the effort closer to manageable.`;
     }
-
     if (metrics.speedKph > 18 && metrics.grade >= 7) {
         return `The selected gear is relatively tall for climbing. Holding ${speedText} on a ${metrics.grade}% ramp will likely require strong legs or a short-duration effort.`;
     }
-
     return `This setup looks coherent for a steady climb: ${ratioText} gearing, ${massValue}, and an estimated ${formatNumber(metrics.powerWatts, 0)} W to sustain ${speedText} on the hill.`;
 }
-
-function getDisplayDistance(metrics: GearMetrics): string {
+function getDisplayDistance(metrics) {
     return currentUnitSystem === "metric"
         ? `${formatNumber(metrics.speedKph, 1)} km/h`
         : `${formatNumber(metrics.speedMph, 1)} mph`;
 }
-
-function getDisplayRange(gearInches: number): string {
+function getDisplayRange(gearInches) {
     if (currentUnitSystem === "metric") {
         return `${formatNumber(gearInches * constants.millimetersPerInch, 0)} mm gear`;
     }
-
     return `${formatNumber(gearInches, 1)} in gear`;
 }
-
-function getStatus(powerDelta: number): StatusPill {
+function getStatus(powerDelta) {
     if (powerDelta > 30) {
         return { label: "Over budget", tone: "is-hard" };
     }
-
     if (powerDelta < -35) {
         return { label: "Comfortable", tone: "is-good" };
     }
-
     return { label: "On target", tone: "is-steady" };
 }
-
-function renderSummary(metrics: GearMetrics): void {
+function renderSummary(metrics) {
     resultElements.gearRatioValue.textContent = formatNumber(metrics.gearRatio, 2);
     resultElements.gearRatioNote.textContent = describeGear(metrics.gearInches, metrics.grade, metrics.powerDelta);
     resultElements.gearInchesValue.textContent = currentUnitSystem === "metric"
@@ -547,10 +364,8 @@ function renderSummary(metrics: GearMetrics): void {
     resultElements.totalForceValue.textContent = `${formatNumber(metrics.totalForce, 1)} N`;
     resultElements.insightText.textContent = buildInsight(metrics);
 }
-
-function renderGearTable(baseInputs: MetricInputs): void {
-    const combinations: GearMetrics[] = [];
-
+function renderGearTable(baseInputs) {
+    const combinations = [];
     baseInputs.chainringSet.forEach((chainring) => {
         baseInputs.cassette.forEach((cog) => {
             combinations.push(computeGearMetrics({
@@ -565,13 +380,10 @@ function renderGearTable(baseInputs: MetricInputs): void {
             }));
         });
     });
-
     combinations.sort((left, right) => left.gearRatio - right.gearRatio);
-
     resultElements.gearTableBody.innerHTML = combinations.map((metrics) => {
         const isSelected = metrics.chainring === baseInputs.chainring && metrics.cog === baseInputs.cog;
         const status = getStatus(metrics.powerDelta);
-
         return `
             <tr class="${isSelected ? "is-selected" : ""}">
                 <td>${metrics.chainring} x ${metrics.cog}</td>
@@ -584,8 +396,7 @@ function renderGearTable(baseInputs: MetricInputs): void {
         `;
     }).join("");
 }
-
-function buildLinePath(points: ChartPoint[], width: number, height: number, padding: { top: number; right: number; bottom: number; left: number }): ChartData {
+function buildLinePath(points, width, height, padding) {
     const xs = points.map((point) => point.x);
     const ys = points.map((point) => point.y);
     const xMin = Math.min(...xs);
@@ -594,9 +405,8 @@ function buildLinePath(points: ChartPoint[], width: number, height: number, padd
     const yMax = Math.max(...ys) * 1.1 || 1;
     const plotWidth = width - padding.left - padding.right;
     const plotHeight = height - padding.top - padding.bottom;
-    const mapX = (value: number) => padding.left + ((value - xMin) / Math.max(xMax - xMin, 1)) * plotWidth;
-    const mapY = (value: number) => height - padding.bottom - ((value - yMin) / Math.max(yMax - yMin, 1)) * plotHeight;
-
+    const mapX = (value) => padding.left + ((value - xMin) / Math.max(xMax - xMin, 1)) * plotWidth;
+    const mapY = (value) => height - padding.bottom - ((value - yMin) / Math.max(yMax - yMin, 1)) * plotHeight;
     return {
         yMax,
         points: points.map((point) => ({
@@ -606,8 +416,7 @@ function buildLinePath(points: ChartPoint[], width: number, height: number, padd
         }))
     };
 }
-
-function renderChart(svg: SVGSVGElement, points: ChartPoint[], options: ChartOptions): void {
+function renderChart(svg, points, options) {
     const width = 360;
     const height = 180;
     const padding = { top: 16, right: 16, bottom: 28, left: 38 };
@@ -616,12 +425,11 @@ function renderChart(svg: SVGSVGElement, points: ChartPoint[], options: ChartOpt
         .map((point, index) => `${index === 0 ? "M" : "L"}${point.plotX} ${point.plotY}`)
         .join(" ");
     const gridValues = [0.25, 0.5, 0.75, 1];
-
     svg.innerHTML = `
         ${gridValues.map((value) => {
-            const y = height - padding.bottom - value * (height - padding.top - padding.bottom);
-            return `<line class="chart-grid-line" x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}"></line>`;
-        }).join("")}
+        const y = height - padding.bottom - value * (height - padding.top - padding.bottom);
+        return `<line class="chart-grid-line" x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}"></line>`;
+    }).join("")}
         <line class="chart-axis" x1="${padding.left}" y1="${padding.top}" x2="${padding.left}" y2="${height - padding.bottom}"></line>
         <line class="chart-axis" x1="${padding.left}" y1="${height - padding.bottom}" x2="${width - padding.right}" y2="${height - padding.bottom}"></line>
         <path class="chart-line ${options.lineClass}" d="${linePath}"></path>
@@ -632,9 +440,8 @@ function renderChart(svg: SVGSVGElement, points: ChartPoint[], options: ChartOpt
         <text class="chart-label" x="8" y="20">${options.yLabel} 0-${formatNumber(chartData.yMax, 0)}</text>
     `;
 }
-
-function renderCharts(baseInputs: MetricInputs): void {
-    const cadencePoints: ChartPoint[] = [50, 60, 70, 80, 90, 100].map((cadence) => {
+function renderCharts(baseInputs) {
+    const cadencePoints = [50, 60, 70, 80, 90, 100].map((cadence) => {
         const metrics = computeGearMetrics({
             chainring: baseInputs.chainring,
             cog: baseInputs.cog,
@@ -645,15 +452,13 @@ function renderCharts(baseInputs: MetricInputs): void {
             grade: baseInputs.grade,
             powerBudget: baseInputs.powerBudget
         });
-
         return {
             x: cadence,
             y: currentUnitSystem === "metric" ? metrics.speedKph : metrics.speedMph,
             label: `${cadence}`
         };
     });
-
-    const gradePoints: ChartPoint[] = [0, 3, 6, 9, 12, 15].map((grade) => {
+    const gradePoints = [0, 3, 6, 9, 12, 15].map((grade) => {
         const metrics = computeGearMetrics({
             chainring: baseInputs.chainring,
             cog: baseInputs.cog,
@@ -664,76 +469,65 @@ function renderCharts(baseInputs: MetricInputs): void {
             grade,
             powerBudget: baseInputs.powerBudget
         });
-
         return {
             x: grade,
             y: metrics.powerWatts,
             label: `${grade}%`
         };
     });
-
     renderChart(resultElements.cadenceChart, cadencePoints, {
         lineClass: "chart-line-speed",
         pointClass: "chart-point-speed",
         yLabel: currentUnitSystem === "metric" ? "km/h" : "mph"
     });
-
     renderChart(resultElements.gradeChart, gradePoints, {
         lineClass: "chart-line-power",
         pointClass: "chart-point-power",
         yLabel: "W"
     });
-
     resultElements.cadenceChartSummary.textContent = currentUnitSystem === "metric"
         ? "Higher cadence scales speed almost linearly for the selected gear in km/h."
         : "Higher cadence scales speed almost linearly for the selected gear in mph.";
     resultElements.gradeChartSummary.textContent = "Power rises sharply as grade increases because gravity dominates the resisting force.";
 }
-
-function updateUnitLabels(): void {
+function updateUnitLabels() {
     if (currentUnitSystem === "metric") {
         resultElements.riderWeightUnit.textContent = "kg";
         resultElements.bikeWeightUnit.textContent = "kg";
         resultElements.wheelDiameterUnit.textContent = "mm";
         return;
     }
-
     resultElements.riderWeightUnit.textContent = "lb";
     resultElements.bikeWeightUnit.textContent = "lb";
     resultElements.wheelDiameterUnit.textContent = "in";
 }
-
-function setUnitButtonState(): void {
+function setUnitButtonState() {
     unitButtons.forEach((button) => {
         button.classList.toggle("is-active", button.dataset.unit === currentUnitSystem);
     });
 }
-
-function convertDisplayedInputs(nextUnitSystem: UnitSystem): void {
+function convertDisplayedInputs(nextUnitSystem) {
     if (nextUnitSystem === currentUnitSystem) {
         return;
     }
-
-    const convertValue = (fieldName: string, convertedValue: number, digits: number) => {
+    const convertValue = (fieldName, convertedValue, digits) => {
         writeValue(fieldName, formatNumber(convertedValue, digits));
     };
-
     if (nextUnitSystem === "imperial") {
         convertValue("riderWeight", readNumber("riderWeight") * constants.poundsPerKilogram, 1);
         convertValue("bikeWeight", readNumber("bikeWeight") * constants.poundsPerKilogram, 1);
         convertValue("wheelDiameter", readNumber("wheelDiameter") / constants.millimetersPerInch, 1);
-    } else {
+    }
+    else {
         convertValue("riderWeight", readNumber("riderWeight") / constants.poundsPerKilogram, 1);
         convertValue("bikeWeight", readNumber("bikeWeight") / constants.poundsPerKilogram, 1);
         convertValue("wheelDiameter", readNumber("wheelDiameter") * constants.millimetersPerInch, 0);
     }
-
     currentUnitSystem = nextUnitSystem;
     updateUnitLabels();
     setUnitButtonState();
 }
-
-function applyPreset(presetValues: PresetValues): void {
+function applyPreset(presetValues) {
     writeValue("chainring", String(presetValues.chainring));
     writeValue("cog", String(presetValues.cog));
     writeValue("cadence", String(presetValues.cadence));
@@ -741,19 +535,18 @@ function applyPreset(presetValues: PresetValues): void {
     writeValue("powerBudget", String(presetValues.powerBudget));
     writeValue("chainringSet", presetValues.chainringSet);
     writeValue("cassette", presetValues.cassette);
-
     if (currentUnitSystem === "metric") {
         writeValue("riderWeight", String(presetValues.riderWeight));
         writeValue("bikeWeight", String(presetValues.bikeWeight));
         writeValue("wheelDiameter", formatNumber(presetValues.wheelDiameter * constants.millimetersPerInch, 0));
-    } else {
+    }
+    else {
         writeValue("riderWeight", formatNumber(presetValues.riderWeight * constants.poundsPerKilogram, 1));
         writeValue("bikeWeight", formatNumber(presetValues.bikeWeight * constants.poundsPerKilogram, 1));
         writeValue("wheelDiameter", String(presetValues.wheelDiameter));
     }
 }
-
-function calculate(): void {
+function calculate() {
     const metricInputs = getMetricInputs();
     const selectedMetrics = computeGearMetrics({
         chainring: metricInputs.chainring,
@@ -765,25 +558,20 @@ function calculate(): void {
         grade: metricInputs.grade,
         powerBudget: metricInputs.powerBudget
     });
-
     renderSummary(selectedMetrics);
     renderGearTable(metricInputs);
     renderCharts(metricInputs);
 }
-
-function renderAppVersion(): void {
+function renderAppVersion() {
     resultElements.appVersion.textContent = `Version ${APP_VERSION}`;
 }
-
 form.addEventListener("input", () => {
     clearRecommendations();
     calculate();
 });
-
 unitButtons.forEach((button) => {
     button.addEventListener("click", () => {
         const nextUnit = button.dataset.unit;
-
         if (nextUnit === "metric" || nextUnit === "imperial") {
             convertDisplayedInputs(nextUnit);
             clearRecommendations();
@@ -791,11 +579,9 @@ unitButtons.forEach((button) => {
         }
     });
 });
-
-document.querySelectorAll<HTMLButtonElement>("[data-preset]").forEach((button) => {
+document.querySelectorAll("[data-preset]").forEach((button) => {
     button.addEventListener("click", () => {
-        const presetKey = button.dataset.preset as PresetKey | undefined;
-
+        const presetKey = button.dataset.preset;
         if (presetKey && presetKey in presets) {
             applyPreset(presets[presetKey]);
             clearRecommendations();
@@ -803,15 +589,12 @@ document.querySelectorAll<HTMLButtonElement>("[data-preset]").forEach((button) =
         }
     });
 });
-
 calculateChainringButton.addEventListener("click", () => {
     renderChainringRecommendation(calculateChainringRecommendation(getMetricInputs()));
 });
-
 calculateCassetteButton.addEventListener("click", () => {
     renderCassetteRecommendation(calculateCassetteRecommendation(getMetricInputs()));
 });
-
 renderAppVersion();
 updateUnitLabels();
 setUnitButtonState();

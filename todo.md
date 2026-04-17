@@ -1,5 +1,15 @@
 # Bike Calculator Task Plan
 
+- [x] Automatically increment the patch version on every local build.
+- [x] Keep package metadata and the displayed browser version aligned after each increment.
+
+- [x] Add an application version starting at 0.0.1.
+- [x] Display the current application version on the webpage.
+- [x] Keep the displayed version synced from package metadata during the build.
+
+- [x] Fix the Azure Static Web Apps workflow schema error in the close pull request job.
+- [x] Validate the workflow no longer reports the missing required input.
+
 - [x] Update the build to emit browser-ready files into dist/.
 - [x] Copy static site assets into dist/ as part of the build.
 - [x] Verify dist/ contains a complete deployable site after npm run build.
@@ -23,6 +33,14 @@
 
 ## Review
 
+- Updated the version sync script so local `npm run build` increments the patch version, updates `package.json` and `package-lock.json`, and then regenerates `version.ts`.
+- Left watch mode as sync-only, and skipped auto-increment when `CI` is set so automated builds do not churn repository version metadata.
+- Set the application version to `0.0.1` in package metadata and added a prebuild sync step that generates a browser-readable version module.
+- Added a visible version pill to the hero section and wired it to the generated version constant so the page reflects the current build version.
+- Corrected the deployable build output to include `version.js` in dist because app.js now imports it as an ES module dependency.
+- Wired the same version sync step into watch mode so TypeScript development builds do not fail on a fresh checkout.
+- Fixed the close pull request workflow job to include the required `app_location` input for the Static Web Apps deploy action.
+- Verified the workflow file no longer reports the missing required input error in the editor.
 - Verified the page by opening [index.html](c:/Code/SMS/BikeCalculator/index.html) in the browser.
 - Confirmed default calculations render correctly and the preset buttons update outputs.
 - Checked a steep mountain bike preset to validate low-gear climbing behavior.

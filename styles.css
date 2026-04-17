@@ -148,6 +148,19 @@ h2 {
     line-height: 1.7;
 }
 
+.app-version {
+    display: inline-flex;
+    margin-top: 1.25rem;
+    padding: 0.45rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(24, 34, 30, 0.08);
+    color: var(--text-main);
+    font-size: 0.86rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
 .hero-card,
 .hero-card-label {
     color: #f7f4ed;
