@@ -1,5 +1,9 @@
 # Bike Calculator Task Plan
 
+- [x] Update the build to emit browser-ready files into dist/.
+- [x] Copy static site assets into dist/ as part of the build.
+- [x] Verify dist/ contains a complete deployable site after npm run build.
+
 - [x] Create a static website structure for the bicycle calculator.
 - [x] Implement gear ratio, cadence, speed, and hill-climb analysis logic.
 - [x] Build a responsive UI for riders to enter bike, rider, and terrain values.
@@ -33,3 +37,6 @@
 - Corrected the chainring recommendation to search the full allowed front-chainring range instead of only the entered chainring list.
 - Added a Calculate Cassette button that finds the minimum largest rear cog needed for the current front chainring.
 - Verified a default case where the existing 34T cassette already exceeds the required 32T largest cog, and a 50T chainring case that needs a 46T largest cog.
+- Updated the build to compile TypeScript to the normal root [app.js](c:/Code/SMS/BikeCalculator/app.js) and then create a deployable dist copy.
+- Added a build copy step so [app.js](c:/Code/SMS/BikeCalculator/app.js), [index.html](c:/Code/SMS/BikeCalculator/index.html), and [styles.css](c:/Code/SMS/BikeCalculator/styles.css) are included in dist.
+- Verified `npm run build` creates a complete dist folder containing app.js, index.html, and styles.css.
