@@ -16,8 +16,10 @@ function getRequiredFormControl(name) {
 const form = getRequiredElement("calculator-form");
 const calculateChainringButton = getRequiredElement("calculateChainringButton");
 const calculateCassetteButton = getRequiredElement("calculateCassetteButton");
-const chainringField = getRequiredFormControl("chainring");
-const cogField = getRequiredFormControl("cog");
+const drivetrainBounds = {
+    chainring: { min: 20, max: 70 },
+    cog: { min: 9, max: 60 }
+};
 const resultElements = {
     appVersion: getRequiredElement("appVersion"),
     gearRatioValue: getRequiredElement("gearRatioValue"),
@@ -48,8 +50,6 @@ const resultElements = {
 const unitButtons = Array.from(document.querySelectorAll(".unit-button"));
 const presets = {
     endurance: {
-        chainring: 34,
-        cog: 34,
         wheelDiameter: 27.8,
         cadence: 85,
         riderWeight: 90.7,
@@ -60,8 +60,6 @@ const presets = {
         cassette: "11, 13, 15, 17, 19, 21, 24, 28, 34"
     },
     gravel: {
-        chainring: 40,
-        cog: 44,
         wheelDiameter: 28.2,
         cadence: 72,
         riderWeight: 78,
@@ -72,8 +70,6 @@ const presets = {
         cassette: "10, 12, 14, 16, 18, 21, 24, 28, 32, 38, 44"
     },
     mountain: {
-        chainring: 30,
-        cog: 52,
         wheelDiameter: 29,
         cadence: 68,
         riderWeight: 82,
@@ -113,13 +109,22 @@ function parseToothList(value, fallback) {
     }
     return Array.from(new Set(parsed)).sort((left, right) => left - right);
 }
+function getActiveClimbingGear(chainringSet, cassette) {
+    return {
+        chainring: Math.min(...chainringSet),
+        cog: Math.max(...cassette)
+    };
+}
 function getMetricInputs() {
     const wheelDiameterInput = readNumber("wheelDiameter");
     const riderWeightInput = readNumber("riderWeight");
     const bikeWeightInput = readNumber("bikeWeight");
+    const chainringSet = parseToothList(getRequiredFormControl("chainringSet").value, drivetrainBounds.chainring.min);
+    const cassette = parseToothList(getRequiredFormControl("cassette").value, drivetrainBounds.cog.max);
+    const activeClimbingGear = getActiveClimbingGear(chainringSet, cassette);
     return {
-        chainring: readNumber("chainring"),
-        cog: readNumber("cog"),
+        chainring: activeClimbingGear.chainring,
+        cog: activeClimbingGear.cog,
         wheelDiameterInches: currentUnitSystem === "metric"
             ? wheelDiameterInput / constants.millimetersPerInch
             : wheelDiameterInput,
@@ -132,8 +137,8 @@ function getMetricInputs() {
             : bikeWeightInput / constants.poundsPerKilogram,
         grade: readNumber("grade"),
         powerBudget: readNumber("powerBudget"),
-        chainringSet: parseToothList(getRequiredFormControl("chainringSet").value, readNumber("chainring")),
-        cassette: parseToothList(getRequiredFormControl("cassette").value, readNumber("cog"))
+        chainringSet,
+        cassette
     };
 }
 function computeGearMetrics(input) {
@@ -173,19 +178,15 @@ function computeGearMetrics(input) {
     };
 }
 function getChainringBounds() {
-    const min = Number(chainringField.min);
-    const max = Number(chainringField.max);
     return {
-        min: Number.isFinite(min) ? min : 20,
-        max: Number.isFinite(max) ? max : 70
+        min: drivetrainBounds.chainring.min,
+        max: drivetrainBounds.chainring.max
     };
 }
 function getCogBounds() {
-    const min = Number(cogField.min);
-    const max = Number(cogField.max);
     return {
-        min: Number.isFinite(min) ? min : 9,
-        max: Number.isFinite(max) ? max : 60
+        min: drivetrainBounds.cog.min,
+        max: drivetrainBounds.cog.max
     };
 }
 function calculateChainringRecommendation(inputs) {
@@ -254,7 +255,7 @@ function clearChainringRecommendation() {
 }
 function clearCassetteRecommendation() {
     resultElements.cassetteRecommendationValue.textContent = "Press Calculate Cassette to find the smallest workable largest cog.";
-    resultElements.cassetteRecommendationNote.textContent = "Uses the current front chainring and searches the full rear-cog range to find the minimum largest cog that stays inside your power budget.";
+    resultElements.cassetteRecommendationNote.textContent = "Uses the smallest listed chainring and searches the full rear-cog range to find the minimum largest cog that stays inside your power budget.";
 }
 function clearRecommendations() {
     clearChainringRecommendation();
@@ -528,8 +529,6 @@ function convertDisplayedInputs(nextUnitSystem) {
     setUnitButtonState();
 }
 function applyPreset(presetValues) {
-    writeValue("chainring", String(presetValues.chainring));
-    writeValue("cog", String(presetValues.cog));
     writeValue("cadence", String(presetValues.cadence));
     writeValue("grade", String(presetValues.grade));
     writeValue("powerBudget", String(presetValues.powerBudget));

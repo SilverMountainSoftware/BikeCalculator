@@ -58,3 +58,6 @@
 - Updated the build to compile TypeScript to the normal root [app.js](c:/Code/SMS/BikeCalculator/app.js) and then create a deployable dist copy.
 - Added a build copy step so [app.js](c:/Code/SMS/BikeCalculator/app.js), [index.html](c:/Code/SMS/BikeCalculator/index.html), and [styles.css](c:/Code/SMS/BikeCalculator/styles.css) are included in dist.
 - Verified `npm run build` creates a complete dist folder containing app.js, index.html, and styles.css.
+- Removed the duplicate top-level Front chainring and Rear cog inputs so the drivetrain lists are the only gear source of truth.
+- Updated the calculator to use the smallest listed chainring and largest listed cassette cog as the active climbing gear for the summary cards, charts, and highlighted table row.
+- Recompiled TypeScript with `npx tsc -p tsconfig.json` and confirmed the generated [app.js](c:/Code/SMS/BikeCalculator/app.js) updated without errors.
