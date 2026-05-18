@@ -6,7 +6,7 @@
     "sync-version": "node scripts/sync-version.mjs",
     "prebuild": "node scripts/sync-version.mjs --increment",
     "prewatch": "npm run sync-version",
-    "build": "rimraf dist && tsc -p tsconfig.json && shx mkdir -p dist && shx cp app.js version.js index.html styles.css dist/",
+    "build": "rimraf dist && tsc -p tsconfig.json && shx mkdir -p dist && shx cp app.js tcx.js version.js index.html tcx.html styles.css dist/",
     "watch": "tsc --watch"
   },
   "devDependencies": {

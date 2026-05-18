@@ -8,5 +8,5 @@
     "noEmitOnError": true,
     "skipLibCheck": true
   },
-  "include": ["app.ts"]
+  "include": ["app.ts", "tcx.ts", "version.ts"]
 }

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCX Analyzer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .tcx-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .file-upload-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 3rem;
+            border: 2px dashed rgba(24, 34, 30, 0.3);
+            border-radius: 1rem;
+            background: rgba(255, 255, 255, 0.5);
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .file-upload-area:hover, .file-upload-area.drag-over {
+            background: rgba(255, 255, 255, 0.8);
+            border-color: var(--text-main);
+        }
+        .file-upload-area input[type="file"] {
+            display: none;
+        }
+        .file-upload-label {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--text-main);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-shell">
+        <header class="hero">
+            <div class="hero-copy">
+                <p class="eyebrow">Workout analysis</p>
+                <h1>Extract insights from your TCX workouts.</h1>
+                <p class="hero-text">
+                    Drop a Training Center XML (TCX) file here to see total distance, elevation gain, average speed, and heart rate data.
+                </p>
+                <nav class="app-nav">
+                    <a href="index.html">Climbing Calculator</a>
+                    <a href="tcx.html" class="is-active">TCX Analyzer</a>
+                </nav>
+            </div>
+            <div class="hero-card">
+                <p class="hero-card-label">Metrics supported</p>
+                <ul>
+                    <li>Total distance</li>
+                    <li>Moving time & total time</li>
+                    <li>Elevation gain</li>
+                    <li>Average and max heart rate</li>
+                </ul>
+            </div>
+        </header>
+
+        <main class="layout">
+            <section class="panel controls-panel" style="grid-column: 1 / -1;">
+                <div class="panel-heading">
+                    <p class="section-kicker">Input</p>
+                    <h2>Select your TCX file</h2>
+                </div>
+
+                <div class="file-upload-area" id="dropZone">
+                    <span class="file-upload-label">Drag & drop your TCX file here, or click to browse</span>
+                    <input type="file" id="tcxFileInput" accept=".tcx,application/vnd.garmin.tcx+xml">
+                </div>
+            </section>
+
+            <section class="panel results-panel" style="grid-column: 1 / -1; display: none;" id="resultsSection">
+                <div class="panel-heading">
+                    <p class="section-kicker">Analysis</p>
+                    <h2>Activity Summary</h2>
+                </div>
+
+                <div class="tcx-stats-grid metrics-grid" id="statsContainer">
+                    <!-- Stats will be populated here -->
+                </div>
+                
+                <div class="analysis-grid extended-grid">
+                    <article class="analysis-card">
+                        <div class="subsection-heading">
+                            <div>
+                                <p class="section-kicker">Data</p>
+                                <h3>Raw Summary Statistics</h3>
+                            </div>
+                        </div>
+                        <div class="table-wrap">
+                            <table class="gear-table">
+                                <thead>
+                                    <tr>
+                                        <th>Metric</th>
+                                        <th>Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rawSummaryTableBody"></tbody>
+                            </table>
+                        </div>
+                    </article>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="tcx.js"></script>
+</body>
+</html>
