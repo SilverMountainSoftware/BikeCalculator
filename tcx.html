@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TCX Analyzer</title>
+    <title>Workout Analyzer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
@@ -47,13 +47,13 @@
         <header class="hero">
             <div class="hero-copy">
                 <p class="eyebrow">Workout analysis</p>
-                <h1>Extract insights from your TCX workouts.</h1>
+                <h1>Extract insights from your workouts.</h1>
                 <p class="hero-text">
-                    Drop a Training Center XML (TCX) file here to see total distance, elevation gain, average speed, and heart rate data.
+                    Drop a Garmin TCX or FIT file here to see total distance, elevation gain, average speed, and heart rate data.
                 </p>
                 <nav class="app-nav">
                     <a href="index.html">Climbing Calculator</a>
-                    <a href="tcx.html" class="is-active">TCX Analyzer</a>
+                    <a href="tcx.html" class="is-active">Workout Analyzer</a>
                 </nav>
             </div>
             <div class="hero-card">
@@ -71,12 +71,12 @@
             <section class="panel controls-panel" style="grid-column: 1 / -1;">
                 <div class="panel-heading">
                     <p class="section-kicker">Input</p>
-                    <h2>Select your TCX file</h2>
+                    <h2>Select your TCX or FIT file</h2>
                 </div>
 
                 <div class="file-upload-area" id="dropZone">
-                    <span class="file-upload-label">Drag & drop your TCX file here, or click to browse</span>
-                    <input type="file" id="tcxFileInput" accept=".tcx,application/vnd.garmin.tcx+xml">
+                    <span class="file-upload-label">Drag & drop your file here, or click to browse</span>
+                    <input type="file" id="tcxFileInput" accept=".tcx,application/vnd.garmin.tcx+xml,.fit">
                 </div>
             </section>
 
@@ -95,8 +95,7 @@
                         <div class="subsection-heading">
                             <div>
                                 <p class="section-kicker">Data</p>
-                                <h3>Raw Summary Statistics</h3>
-                            </div>
+                                <h3>Raw Summary Statistics</h3>                                <p style="font-size: 0.9em; opacity: 0.8; margin-top: 0.5rem; margin-bottom: 1rem;"><em>(Note: "n=" indicates the number of data points or trackpoints used in the calculation.)</em></p>                            </div>
                         </div>
                         <div class="table-wrap">
                             <table class="gear-table">

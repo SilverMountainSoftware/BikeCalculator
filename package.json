@@ -1,17 +1,21 @@
 {
   "name": "bike-calculator",
-  "version": "0.0.3",
+  "version": "0.0.12",
   "private": true,
   "scripts": {
     "sync-version": "node scripts/sync-version.mjs",
     "prebuild": "node scripts/sync-version.mjs --increment",
     "prewatch": "npm run sync-version",
-    "build": "rimraf dist && tsc -p tsconfig.json && shx mkdir -p dist && shx cp app.js tcx.js version.js index.html tcx.html styles.css dist/",
-    "watch": "tsc --watch"
+    "build": "rimraf dist && shx mkdir -p dist && esbuild app.ts tcx.ts --bundle --outdir=dist --format=esm && shx cp index.html tcx.html styles.css version.js dist/",
+    "watch": "esbuild app.ts tcx.ts --bundle --outdir=dist --format=esm --watch"
   },
   "devDependencies": {
+    "esbuild": "^0.28.0",
     "rimraf": "^6.0.1",
     "shx": "^0.4.0",
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "fit-file-parser": "^3.0.0"
   }
 }
