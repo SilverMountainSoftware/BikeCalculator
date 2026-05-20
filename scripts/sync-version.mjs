@@ -5,6 +5,7 @@ const workspaceRoot = resolve(import.meta.dirname, "..");
 const packageJsonPath = resolve(workspaceRoot, "package.json");
 const packageLockPath = resolve(workspaceRoot, "package-lock.json");
 const versionModulePath = resolve(workspaceRoot, "version.ts");
+const versionJsPath = resolve(workspaceRoot, "version.js");
 const shouldIncrement = process.argv.includes("--increment") && !process.env.CI;
 
 function parseVersion(version) {
@@ -55,3 +56,4 @@ if (nextVersion !== currentPackageJson.version) {
 
 const nextContents = `export const APP_VERSION = ${JSON.stringify(nextVersion)};\n`;
 writeFileSync(versionModulePath, nextContents, "utf8");
+writeFileSync(versionJsPath, nextContents, "utf8");
